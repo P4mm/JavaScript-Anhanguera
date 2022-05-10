@@ -1,8 +1,8 @@
 // Variável global que busca o elemento do "visor" - input readonly do HTML
 let inputResultado = document.getElementById('inputCalculadora')
 // Objeto que registra os valores e funções do cálculo
-let calculo = {
-  valorSalvo: null,
+let memoria = {
+  valorSalvo: [],
   funcaoParaCalcular: null
 }
 //Ao carregar a página, atribui eventos aos botões por meio dos seus identificadores (ids)
@@ -40,8 +40,16 @@ function atribuirEventos() {
 }
 // Adiciona o número no visor
 function inserirNumero() {
+  console.log(inputResultado.value)
+  console.log(event.target)
+  console.log(event.target.textContent.trim())
+
+  inputResultado.value += event.target.textContent.trim()
+
+  console.log(inputResultado.value)
+
   // Se o valor não for um número, substitui pelo valor do conteúdo do botão
-  if (isNaN(inputResultado.value)) {
+  /*if (isNaN(inputResultado.value)) {
     inputResultado.value = event.target.textContent
     // Senão, adiciona o valor aos demais
   } else {
@@ -52,33 +60,41 @@ function inserirNumero() {
     } else {
       inputResultado.value += event.target.textContent
     }
-  }
+  }*/
 }
 //Operação de soma
-function somar(valor1, valor2) {
-  return valor1 + valor2
+function somar() {
+  return memoria.valorSalvo.reduce(function (acumulador, valorAtual) {
+    return acumulador + valorAtual
+  })
 }
 //Operação de subtração
-function subtrair(valor1, valor2) {
-  return valor1 - valor2
+function subtrair() {
+  return memoria.valorSalvo.reduce(function (acumulador, valorAtual) {
+    return acumulador - valorAtual
+  })
 }
 //Operação de multiplicacao
-function multiplicar(valor1, valor2) {
-  return valor1 * valor2
+function multiplicar() {
+  return memoria.valorSalvo.reduce(function (acumulador, valorAtual) {
+    return acumulador * valorAtual
+  })
 }
 //Operação de divisão
 function dividir(valor1, valor2) {
-  if (valor2 === 0) {
+  if (memoria.valorSalvo.findIndex(element => element == 0) > 0) {
     return 'Erro, não é possível dividir um número por zero!'
   } else {
-    return valor1 / valor2
+    return memoria.valorSalvo.reduce(function (acumulador, valorAtual) {
+      return acumulador / valorAtual
+    })
   }
 }
 // Limpa o visor e os dados do cálculo
 function limparDados() {
   inputResultado.value = ''
-  calculo.valorSalvo = null
-  calculo.funcaoParaCalcular = null
+  memoria.valorSalvo = []
+  memoria.funcaoParaCalcular = null
 }
 // Insere o ponto para casas decimais
 function inserirPonto() {
@@ -90,41 +106,43 @@ function inserirPonto() {
 }
 //Atribui a função de acordo com o tipo de operador clicado
 function atribuirOperacao(operador) {
-  if (operador === '+') {
-    calculo.funcaoParaCalcular = somar
-  } else if (operador === '-') {
-    calculo.funcaoParaCalcular = subtrair
-  } else if (operador === '*') {
-    calculo.funcaoParaCalcular = multiplicar
+  if (operador == '+') {
+    memoria.funcaoParaCalcular = somar
+  } else if (operador == '-') {
+    memoria.funcaoParaCalcular = subtrair
+  } else if (operador == '*') {
+    memoria.funcaoParaCalcular = multiplicar
   } else {
-    calculo.funcaoParaCalcular = dividir
+    memoria.funcaoParaCalcular = dividir
   }
 }
 //Atualiza valores de cálculo
 function clicarOperador() {
-  if (!isNaN(inputResultado.value)) {
-    if (calculo.valorSalvo == null) {
-      calculo.valorSalvo = Number(inputResultado.value)
-    } else if (calculo.funcaoParaCalcular != null) {
-      calculo.valorSalvo = calculo.funcaoParaCalcular(
-        calculo.valorSalvo,
-        Number(inputResultado.value)
-      )
-    }
+  if (isNaN(inputResultado.value)) {
+    return false
   }
-  let operador = event.target.textContent
-  atribuirOperacao(operador)
-  inputResultado.value = operador
+
+  memoria.valorSalvo.push(Number(inputResultado.value))
+
+  if (memoria.funcaoParaCalcular != null) {
+    inputResultado.value = memoria.funcaoParaCalcular()
+  } else {
+    let operador = event.target.textContent.trim()
+    atribuirOperacao(operador)
+    inputResultado.value = ''
+  }
+
+  console.log(memoria)
 }
 //Exibe resultado no visor
 function clicarResultado() {
-  if (!isNaN(inputResultado.value) && calculo.funcaoParaCalcular != null) {
-    let resultado = calculo.funcaoParaCalcular(
-      calculo.valorSalvo,
+  if (!isNaN(inputResultado.value) && memoria.funcaoParaCalcular != null) {
+    let resultado = memoria.funcaoParaCalcular(
+      memoria.valorSalvo,
       Number(inputResultado.value)
     )
     inputResultado.value = resultado
-    calculo.valorSalvo = resultado
-    calculo.funcaoParaCalcular = null
+    memoria.valorSalvo = resultado
+    memoria.funcaoParaCalcular = null
   }
 }
